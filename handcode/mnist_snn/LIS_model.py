@@ -34,7 +34,7 @@ def mem_update(ops, x, mem, spike, lif):
     return mem, spike
 
 class LIS_model(nn.Module):
-    def __init__(self):
+    def __init__(self, opt):
         super(LIS_model, self).__init__()
         self.batch_size = 40
         #self.dts = opt.dts
