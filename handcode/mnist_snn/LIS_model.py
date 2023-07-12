@@ -71,11 +71,10 @@ class LIS_model(nn.Module):
         h1_mem = h1_spike = h1_sumspike = torch.zeros(self.batch_size, self.fc[0]).cuda()
         h2_mem = h2_spike = h2_sumspike = torch.zeros(self.batch_size, self.fc[1]).cuda()
         for step in range(time_window):
-            if self.dts == 'MNIST' or self.dts == 'Fashion-MNIST':
-                # x = input > torch.rand(input.size()).cuda()
-                x = input
-            elif self.dts == 'NMNIST':
-                x = input[:, :, :, :, step]
+            
+            # x = input > torch.rand(input.size()).cuda()
+            x = input
+            
             # print("x.shape1:",x.shape)
             c1_mem, c1_spike = mem_update(self.conv1, x.float(), c1_mem, c1_spike, self.lif_layer1)
             # print("c1_spike:",c1_spike)
