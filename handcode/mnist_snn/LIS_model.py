@@ -34,10 +34,10 @@ def mem_update(ops, x, mem, spike, lif):
     return mem, spike
 
 class LIS_model(nn.Module):
-    def __init__(self, opt):
+    def __init__(self):
         super(LIS_model, self).__init__()
-        self.batch_size = opt.batch_size
-        self.dts = opt.dts
+        self.batch_size = 40
+        #self.dts = opt.dts
         self.fc = (128, 10)
         self.tau = 80
         self.v_threshold = 0.2
