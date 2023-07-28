@@ -42,6 +42,11 @@ class LIS_model(nn.Module):
         self.tau = 80.
         self.v_threshold = 0.2
         self.v_reset = None
+        # 按照当前环境切换GPU和CPU
+        use_gpu = False
+        if torch.cuda.is_available():
+            use_gpu = True
+        self.device = torch.device("cuda" if use_gpu else "cpu")
         
         self.cnn = ((1, 32, 3, 1, 1, 5, 2), (32, 32, 3, 1, 1, 5, 2))
         self.kernel = (32, 16, 8)
@@ -64,15 +69,15 @@ class LIS_model(nn.Module):
 
 
     def forward(self, input, time_window = 30):
-        c1_mem = c1_spike = torch.zeros(self.batch_size, self.cnn[0][1], self.kernel[0], self.kernel[0]).cuda()
-        c2_mem = c2_spike = torch.zeros(self.batch_size, self.cnn[1][1], self.kernel[1], self.kernel[1]).cuda()
+        c1_mem = c1_spike = torch.zeros(self.batch_size, self.cnn[0][1], self.kernel[0], self.kernel[0]).to(self.device)
+        c2_mem = c2_spike = torch.zeros(self.batch_size, self.cnn[1][1], self.kernel[1], self.kernel[1]).to(self.device)
         
         
-        h1_mem = h1_spike = h1_sumspike = torch.zeros(self.batch_size, self.fc[0]).cuda()
-        h2_mem = h2_spike = h2_sumspike = torch.zeros(self.batch_size, self.fc[1]).cuda()
+        h1_mem = h1_spike = h1_sumspike = torch.zeros(self.batch_size, self.fc[0]).to(self.device)
+        h2_mem = h2_spike = h2_sumspike = torch.zeros(self.batch_size, self.fc[1]).to(self.device)
         for step in range(time_window):
             
-            # x = input > torch.rand(input.size()).cuda()
+            # x = input > torch.rand(input.size()).to(self.device)
             x = input
             
             # print("x.shape1:",x.shape)
