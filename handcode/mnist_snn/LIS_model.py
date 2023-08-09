@@ -39,7 +39,7 @@ class LIS_model(nn.Module):
         self.batch_size = opt.batch_size
         self.dts = opt.dts
         self.fc = (128, 10)
-        self.tau = 80
+        self.tau = 80.
         self.v_threshold = 0.2
         self.v_reset = None
 
