@@ -1,5 +1,5 @@
 import sys
-#sys.path.append('/home/zlzhu/snn/spikingjelly')
+sys.path.append('/home/zlzhu/snn/spikingjelly')
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -36,14 +36,19 @@ def mem_update(ops, x, mem, spike, lif):
 class LIS_model(nn.Module):
     def __init__(self, opt):
         super(LIS_model, self).__init__()
-        self.batch_size = 40
-        #self.dts = opt.dts
+        self.batch_size = opt.batch_size
+        self.dts = opt.dts
         self.fc = (128, 10)
-        self.tau = 80.
+        self.tau = 80
         self.v_threshold = 0.2
         self.v_reset = None
-        self.cnn = ((1, 32, 3, 1, 1, 5, 2), (32, 32, 3, 1, 1, 5, 2))
-        self.kernel = (32, 16, 8)
+
+        if self.dts == 'MNIST' or self.dts == 'Fashion-MNIST':
+            self.cnn = ((1, 32, 3, 1, 1, 5, 2), (32, 32, 3, 1, 1, 5, 2))
+            self.kernel = (28, 14, 7)
+        elif self.dts == 'NMNIST':
+            self.cnn = ((2, 64, 3, 1, 1, 5, 2), (64, 64, 3, 1, 1, 5, 2))
+            self.kernel = (36, 18, 9)
 
         self.conv1 = nn.Conv2d(self.cnn[0][0], self.cnn[0][1], kernel_size = self.cnn[0][2], stride = self.cnn[0][3], padding = self.cnn[0][4], bias = if_bias)
         self.conv2 = nn.Conv2d(self.cnn[1][0], self.cnn[1][1], kernel_size = self.cnn[1][2], stride = self.cnn[1][3], padding = self.cnn[1][4], bias = if_bias)
@@ -63,17 +68,18 @@ class LIS_model(nn.Module):
 
 
     def forward(self, input, time_window = 30):
-        c1_mem = c1_spike = torch.zeros(self.batch_size, self.cnn[0][1], self.kernel[0], self.kernel[0])
-        c2_mem = c2_spike = torch.zeros(self.batch_size, self.cnn[1][1], self.kernel[1], self.kernel[1])
+        c1_mem = c1_spike = torch.zeros(self.batch_size, self.cnn[0][1], self.kernel[0], self.kernel[0]).cuda()
+        c2_mem = c2_spike = torch.zeros(self.batch_size, self.cnn[1][1], self.kernel[1], self.kernel[1]).cuda()
         
         
-        h1_mem = h1_spike = h1_sumspike = torch.zeros(self.batch_size, self.fc[0])
-        h2_mem = h2_spike = h2_sumspike = torch.zeros(self.batch_size, self.fc[1])
+        h1_mem = h1_spike = h1_sumspike = torch.zeros(self.batch_size, self.fc[0]).cuda()
+        h2_mem = h2_spike = h2_sumspike = torch.zeros(self.batch_size, self.fc[1]).cuda()
         for step in range(time_window):
-            
-            # x = input > torch.rand(input.size())
-            x = input
-            
+            if self.dts == 'MNIST' or self.dts == 'Fashion-MNIST':
+                # x = input > torch.rand(input.size()).cuda()
+                x = input
+            elif self.dts == 'NMNIST':
+                x = input[:, :, :, :, step]
             # print("x.shape1:",x.shape)
             c1_mem, c1_spike = mem_update(self.conv1, x.float(), c1_mem, c1_spike, self.lif_layer1)
             # print("c1_spike:",c1_spike)
