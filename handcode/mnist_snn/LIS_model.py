@@ -7,6 +7,11 @@ from spikingjelly.clock_driven import neuron, encoding, functional
 
 thresh, lens, decay, if_bias = (0.5, 0.5, 0.2, True)
 
+# 先确定是否为GPU环境
+use_gpu = False
+if torch.cuda.is_available():
+    use_gpu = True
+    
 class ActFun(torch.autograd.Function):
 
     @staticmethod
@@ -64,12 +69,21 @@ class LIS_model(nn.Module):
 
 
     def forward(self, input, time_window = 30):
-        c1_mem = c1_spike = torch.zeros(self.batch_size, self.cnn[0][1], self.kernel[0], self.kernel[0]).cuda()
-        c2_mem = c2_spike = torch.zeros(self.batch_size, self.cnn[1][1], self.kernel[1], self.kernel[1]).cuda()
+        if use_gpu:
+            c1_mem = c1_spike = torch.zeros(self.batch_size, self.cnn[0][1], self.kernel[0], self.kernel[0]).cuda()
+            c2_mem = c2_spike = torch.zeros(self.batch_size, self.cnn[1][1], self.kernel[1], self.kernel[1]).cuda()
+        else:
+            c1_mem = c1_spike = torch.zeros(self.batch_size, self.cnn[0][1], self.kernel[0], self.kernel[0])
+            c2_mem = c2_spike = torch.zeros(self.batch_size, self.cnn[1][1], self.kernel[1], self.kernel[1])
         
         
-        h1_mem = h1_spike = h1_sumspike = torch.zeros(self.batch_size, self.fc[0]).cuda()
-        h2_mem = h2_spike = h2_sumspike = torch.zeros(self.batch_size, self.fc[1]).cuda()
+        if use_gpu:
+            h1_mem = h1_spike = h1_sumspike = torch.zeros(self.batch_size, self.fc[0]).cuda()
+            h2_mem = h2_spike = h2_sumspike = torch.zeros(self.batch_size, self.fc[1]).cuda()
+        else:
+            h1_mem = h1_spike = h1_sumspike = torch.zeros(self.batch_size, self.fc[0])
+            h2_mem = h2_spike = h2_sumspike = torch.zeros(self.batch_size, self.fc[1])
+            
         for step in range(time_window):
             x = input
             
